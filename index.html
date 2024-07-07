@@ -43,10 +43,10 @@
 </head>
 <body>
   <div class="pure-u-2-3">
-    <div id="error" class="panel" style="display: none"></div>
-
+    
     <!-- signin -->
-    <div id="signin-form" style="display: block" class="panel pure-form pure-form-aligned">
+    <div id="signin-form" style="display:block" class="panel pure-form pure-form-aligned">
+      <div class="header">Signin</div>
       <div class="pure-control-group">
         <label for="username">Username</label>
         <input name="username" type="email" autocomplete="username" value="Swami@gmail.com">
@@ -57,6 +57,32 @@
       </div>
       <div class="pure-controls">
         <a class="pure-button pure-button-primary" href="/" data-se="submit" onclick="_submitSigninForm(event)">Signin</a>
+      </div>
+    </div>
+
+    <div id="mfa" style="display:none" class="panel pure-form-stacked">
+      <div class="header">
+        <!-- title is set dynamically -->
+      </div>
+
+      <!-- mfa-enroll -->
+      <div id="mfa-enroll" style="display: none">
+          
+        <div id="mfa-enroll-factors" style="display:none">
+          <!-- factors are dynamically inserted here -->
+        </div>
+
+        <div id="mfa-enroll-phone" style="display: none">
+          <label for="phone">Enter your phone number:<label>
+          <input name="phone" type="text" class="pure-u-1-1" />
+          <p>Include the country code, like: <b>+1-555-415-1337</b></p>
+        </div>  
+
+        <div class="footer pure-controls">
+          <a id="mfa-prev" href="/" onclick="_prevMfa(event)" class="pure-button">Go Back</a>
+          <a id="mfa-cancel" href="/" onclick="_cancelMfa(event)" class="pure-button">Cancel</a>
+          <a id="mfa-submit" href="/" style="display: none" onclick="_submitMfa(event)" class="pure-button pure-button-primary">Submit</a>
+        </div>
       </div>
     </div>
 
