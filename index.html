@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        #nav {
+          background: #eee;
+        }
+      
+        #error {
+          color: red;
+        }
+      
+        #mfa-required {
+          padding: 20px;
+        }
+      
+        .header {
+          font-weight: bold;
+          border-bottom: 1px #ccc solid;
+        }
+      
+        .footer {
+          line-height: 40px;
+        }
+      
+        .panel {
+          border: 1px #ccc solid;
+          padding: 10px;
+          margin: 10px;
+        }
+      
+        .scroll-container {
+          overflow: scroll;
+        }
+      </style>
+      <script src="https://global.oktacdn.com/okta-auth-js/4.5.0/okta-auth-js.min.js" type="text/javascript"></script>
+      <script src="oktaPWP.js" type="text/javascript"></script>  
+</head>
+<body>
+  <div class="pure-u-2-3">
+    <div id="error" class="panel" style="display: none"></div>
+
+    <!-- signin -->
+    <div id="signin-form" style="display: block" class="panel pure-form pure-form-aligned">
+      <div class="pure-control-group">
+        <label for="username">Username</label>
+        <input name="username" type="email" autocomplete="username" value="Swami@gmail.com">
+      </div>
+      <div class="pure-control-group">
+        <label for="password">Password</label>
+        <input name="password" type="password" autocomplete="password" value="P@ssword@123">
+      </div>
+      <div class="pure-controls">
+        <a class="pure-button pure-button-primary" href="/" data-se="submit" onclick="_submitSigninForm(event)">Signin</a>
+      </div>
+    </div>
+
+    <!-- Response -->
+    <div class="panel">
+      <div class="header">Response</div>
+      <div id="response"></div>
+    </div>
+
+  </div>
+  <script src="index.js"></script>
+</body>
+</html>
