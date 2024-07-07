@@ -32,14 +32,12 @@ function renderApp() {
       case 'MFA_REQUIRED':
       case 'MFA_ENROLL_ACTIVATE':
       case 'MFA_CHALLENGE':
-        
-        //showMfaAuthn();
         return;
       default:
         showSignIn();
         break;
     }
-}
+  }
 
 function clearUi() {
   const containerElem = document.getElementById('response');
@@ -86,21 +84,14 @@ function showMfaAuthn() {
 function hideMfa() {
   document.getElementById('signin-form').style.display = 'block';
   document.getElementById('mfa').style.display = 'none';
-  document.getElementById('mfa').style.display = 'none';
   document.querySelector('#mfa .header').innerHTML = '';
-  hideSubmitMfa();
   hideMfaEnroll();
-  //hideMfaEnrollActivate();
-  //hideMfaRequired();
-  //hideMfaChallenge();
-  //hideAuthenticatorVerificationData();
 }
 
 // Show a list of MFA factors. The user can pick a factor to enroll in.
 function hideMfaEnroll() {
   document.getElementById('mfa-enroll').style.display = 'none';
   hideMfaEnrollFactors();
-  //hideEnrollPhone();
 }
 
 function showMfaEnroll() {
@@ -126,6 +117,8 @@ function showMfaEnrollFactors() {
   });
 }
 
+function selectMfaFactorForEnrollment() {
+}
 window._selectMfaFactorForEnrollment = bindClick(selectMfaFactorForEnrollment);
 
 function hideMfaEnrollFactors() {
@@ -137,7 +130,6 @@ function hideMfaEnrollFactors() {
 // cancel - terminates the auth flow.
 function showCancelMfa() {
   document.getElementById('mfa-cancel').style.display = 'inline';
-  hidePrevMfa();
 }
 function hideCancelMfa() {
   document.getElementById('mfa-cancel').style.display = 'none';
@@ -150,20 +142,3 @@ function cancelMfaEvent() {
 }
 
 window._cancelMfa = bindClick(cancelMfaEvent);
-
-// prev - go back to previous state
-function showPrevMfa() {
-  document.getElementById('mfa-prev').style.display = 'inline';
-  hideCancelMfa();
-}
-function hidePrevMfa() {
-  document.getElementById('mfa-prev').style.display = 'none';
-}
-
-// submit - will enroll or verify depending on the state.
-function showSubmitMfa() {
-  document.getElementById('mfa-submit').style.display = 'inline';
-}
-function hideSubmitMfa() {
-  document.getElementById('mfa-submit').style.display = 'none';
-}

@@ -1,4 +1,4 @@
-var trace = true;
+var trace = false;
 var appState = {};
 var response = {
   isSuccess : false,
