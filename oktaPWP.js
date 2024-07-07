@@ -1,8 +1,9 @@
-var trace = false;
+var trace = true;
 var appState = {};
 var response = {
+  isSuccess : false,
   transactionStatus: '',
-  content: null  
+  content: null
 };
 var isPush = false;
 
@@ -16,12 +17,13 @@ const authClient = new OktaAuth({
   });
   
   function signIn(username, password) {
-    authClient.signInWithCredentials({username, password})
+    return authClient.signInWithCredentials({username, password})
     .then(handleTransaction)
     .catch(showError);
   }
 
   function handleTransaction(transaction) {
+    response = '';
     switch (transaction.status) {
         case 'SUCCESS':
             updateAppState({ transaction });
@@ -31,7 +33,7 @@ const authClient = new OktaAuth({
         case 'MFA_ENROLL':
             updateAppState({ transaction });
             showTraceAppState();
-            setResponse(transaction.status, showMfaEnrollFactors());
+            setResponse(transaction.status, getMfaEnrollFactors());
             break;
         case 'MFA_ENROLL_ACTIVATE':
             updateAppState({ transaction });
@@ -72,9 +74,13 @@ const authClient = new OktaAuth({
     Object.assign(appState, props);
   }
 
-  //?
   function cancelMfa() {
-    return appState.transaction.cancel().finally(appState = {});
+    return appState.transaction.cancel().finally(clear);
+    }
+  
+    function clear() {
+      appState = {};
+      response = {};
     }
   
   function logout() {
@@ -124,7 +130,7 @@ const authClient = new OktaAuth({
         .catch(showError);
     }
   
-  function showMfaEnrollFactors() {
+  function getMfaEnrollFactors() {
     const transaction = appState.transaction;
     factors = transaction.factors.map(factor => `${factor.provider}:${factor.factorType}`);
     return {factors};
@@ -214,24 +220,23 @@ function prevMfa() {
 
   function setResponse(status, content) {
     response = {
+        isSuccess : true,
         transactionStatus: status,
         content: content
     };
-    var retRes = stringify(response);
-    console.log('Response: ' + retRes);
-    renderApp(retRes);
+    console.log('Response: ' + stringify(response));
   }
   
   function showError(errorMsg) {
     if (trace)
-        console.log('Trace-Error: '+ stringify(errorMsg));
+      console.error(errorMsg);
     
     var error = {
         errorSummary : errorMsg.errorSummary,
-        errorCauses : errorMsg.errorCauses
+        errorCauses : errorMsg.errorCauses 
     };
-    console.error('Error: ' + stringify(error) );
-    }
+    response = {error};
+  }
 
   function stringify(obj) {
     // Convert false/undefined/null into "null"
