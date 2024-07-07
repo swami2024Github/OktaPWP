@@ -1,4 +1,4 @@
-//#region COMMON 1
+//#region COMMON
 // bind methods called from HTML to prevent navigation
 function bindClick(method, boundArgs) {
     return function(e) {
