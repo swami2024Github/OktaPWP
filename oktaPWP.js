@@ -139,7 +139,7 @@ const authClient = new OktaAuth({
 
 //#region MFA_ENROLL_ACTIVATE
   function activateFactor(passCode) {
-    appState.transaction.activate({ passCode })
+    return appState.transaction.activate({ passCode })
       .then(handleTransaction)
       .catch(showError);
   }
