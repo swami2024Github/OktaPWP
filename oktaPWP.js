@@ -1,4 +1,4 @@
-var trace = true;
+var trace = false;
 var appState = {};
 var response = {
   isSuccess : false,
@@ -109,7 +109,7 @@ const authClient = new OktaAuth({
       if ((factor.provider === 'GOOGLE' && factor.factorType === 'token:software:totp') ||
           (factor.provider === 'OKTA' && factor.factorType === 'push') ||
           (factor.provider === 'OKTA' && factor.factorType === 'token:software:totp')) {
-              factor.enroll()
+              return factor.enroll()
                 .then(handleTransaction)
                 .catch(showError);
           }
@@ -120,7 +120,7 @@ const authClient = new OktaAuth({
 
   function enrollSMS(phoneNumber) {
       const factor = appState.factor;
-      factor.enroll({
+      return factor.enroll({
         profile: {
           phoneNumber,
           updatePhone: true

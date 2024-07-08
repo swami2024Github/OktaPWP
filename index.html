@@ -45,7 +45,7 @@
   <div class="pure-u-2-3">
     
     <!-- signin -->
-    <div id="signin-form" style="display:block" class="panel pure-form pure-form-aligned">
+    <div id="signin-form" style="display:none" class="panel pure-form pure-form-aligned">
       <div class="header">Signin</div>
       <div class="pure-control-group">
         <label for="username">Username</label>
@@ -78,8 +78,23 @@
           <p>Include the country code, like: <b>+1-555-415-1337</b></p>
         </div>  
 
+        <div id="mfa-enroll-activate" style="display: none">
+          <div id="mfa-enroll-activate-okta-verify" style="display: none">
+            <label for="qrcode">Open the Verify app and scan this QR code</label>
+            <div name="qrcode" class="qrcode panel">
+              <!-- image is appended dynamically-->
+            </div>
+            <label for="passcode">Enter the code from the app:</label>
+            <input name="passcode" type="text" autocomplete="off"/>
+          </div>
+          <div id="mfa-enroll-activate-phone" style="display: none">
+            <label for="passcode">Enter the code:</label>
+            <input name="passcode" type="text" autocomplete="off"/>
+          </div>
+        </div>
+
         <div class="footer pure-controls">
-          <a id="mfa-prev" href="/" onclick="_prevMfa(event)" class="pure-button">Go Back</a>
+          <a id="mfa-prev" href="/" onclick="_prevMfaUi(event)" class="pure-button">Go Back</a>
           <a id="mfa-cancel" href="/" onclick="_cancelMfa(event)" class="pure-button">Cancel</a>
           <a id="mfa-submit" href="/" style="display: none" onclick="_submitMfa(event)" class="pure-button pure-button-primary">Submit</a>
         </div>
