@@ -5,7 +5,6 @@ var response = {
   transactionStatus: '',
   content: null
 };
-var isPush = false;
 
 //#region	MAIN
 const authClient = new OktaAuth({
@@ -48,8 +47,6 @@ const authClient = new OktaAuth({
             setResponse(transaction.status, {factor});
             break;
       case 'MFA_CHALLENGE':
-                                // trace = true;
-                                // showTraceAppState();
             if (transaction.factorResult === 'REJECTED') {
               updateAppState({ transaction });
               showTraceTransaction(transaction);
@@ -95,39 +92,41 @@ const authClient = new OktaAuth({
 
 //#region	MFA_ENROLL
   function enrollFactor(index, phoneNumber) {
+    return new Promise((resolve, reject) => {
       const factor = appState.transaction.factors[index];
       if (!factor) {
-          console.error('Error: Incorrect factor index selected');
-          return;
-      }
-      updateAppState({ factor });
-      
-      if (factor.provider === 'OKTA' && factor.factorType === 'sms') {
-          return enrollSMS(phoneNumber);
-      }
-
-      if ((factor.provider === 'GOOGLE' && factor.factorType === 'token:software:totp') ||
-          (factor.provider === 'OKTA' && factor.factorType === 'push') ||
-          (factor.provider === 'OKTA' && factor.factorType === 'token:software:totp')) {
-              return factor.enroll()
-                .then(handleTransaction)
-                .catch(showError);
-          }
+        reject(showError('Error: Incorrect factor index selected'));
+      } 
       else {
-            throw new Error('TODO: add handling for factor - ' + `${factor.provider}:${factor.factorType}`);
-          }     
+        updateAppState({ factor });
+        
+        if (factor.provider === 'OKTA' && factor.factorType === 'sms') {
+          alert('JS:'+phoneNumber);
+          factor.enroll({
+            profile: {
+              phoneNumber: phoneNumber,
+              updatePhone: true
+            }
+          }).then(tran => {
+              resolve(handleTransaction(tran));
+            }).catch(err => {
+              reject(showError(err));
+            });
+        } 
+        else if ((factor.provider === 'GOOGLE' && factor.factorType === 'token:software:totp') ||
+            (factor.provider === 'OKTA' && factor.factorType === 'token:software:totp')) {
+              factor.enroll()
+                  .then(tran => {
+                    resolve(handleTransaction(tran));
+                  }).catch(err => {
+                    reject(showError(err));
+                  });
+            }
+        else {
+            return reject(showError('No handling for factor - ' + `${factor.provider}:${factor.factorType}`));
+          }
       }
-
-  function enrollSMS(phoneNumber) {
-      const factor = appState.factor;
-      return factor.enroll({
-        profile: {
-          phoneNumber,
-          updatePhone: true
-        }
-      })
-        .then(handleTransaction)
-        .catch(showError);
+      });
     }
   
   function getMfaEnrollFactors() {
@@ -143,63 +142,27 @@ const authClient = new OktaAuth({
       .then(handleTransaction)
       .catch(showError);
   }
-
-  function oktaPushPoll() {
-    appState.transaction.poll()
-      .then(handleTransaction)
-      .catch(showError);
-  }
 //#endregion MFA_ENROLL_ACTIVATE
 
 //#region MFA_REQUIRED
-function getFactor()
-  {
-    isPush = false;
-    const cnt = appState.transaction.factors.length;
-    if (cnt>1) {
-      for (let i = 0; i < cnt; i++) {
-        fact = appState.transaction.factors[i];
-        if (fact.provider === 'OKTA' && fact.factorType === 'push') {
-          isPush = true;
-          return fact;
-        }
-      }
-    } 
-    else {
-      return appState.transaction.factors[0];
-    }
-  }
+function getFactor() {
+  return appState.transaction.factors[0];
+}
 
 function challengeFactor() {
   const factor = getFactor();
-  var autoPushFlag = null;
-  if (isPush) {
-    autoPushFlag = { autoPush: true };
-  }
-  factor.verify({ autoPush: true })
+  factor.verify()
       .then(handleTransaction)
       .catch(showError);
 }
 
 function verifyFactor(passCode) {
   const factor = getFactor();
-  if (isPush) {
-    factor.verify({ autoPush: true })
-      .then(tran => {
-              tran.poll({ autoPush: true })
-                .then(handleTransaction)
-                .catch(showError);
-            })
-      .catch(showError);
-  }
-  else {
     factor.verify({ passCode })
       .then(handleTransaction)
       .catch(showError);
-  }
 }
 
-// Okta PUSH- If Challenge is Rejected, prev() will set the transaction to MFA_REQUIRED
 function prevMfa() {
   return appState.transaction.prev()
     .then(handleTransaction)
@@ -225,17 +188,29 @@ function prevMfa() {
         content: content
     };
     console.log('Response: ' + stringify(response));
+    return response;
   }
   
   function showError(errorMsg) {
     if (trace)
       console.error(errorMsg);
-    
-    var error = {
+
+    var error = '';
+    if (!errorMsg.errorSummary){
+      error = errorMsg;
+    } 
+    else {
+      error = {
         errorSummary : errorMsg.errorSummary,
         errorCauses : errorMsg.errorCauses 
+      };
+    }
+    response = {
+      isSuccess : false,
+      transactionStatus : response.transactionStatus,
+      content : error
     };
-    response = {error};
+    return response;
   }
 
   function stringify(obj) {

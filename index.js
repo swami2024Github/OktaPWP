@@ -39,7 +39,7 @@ function renderApp() {
         break;
       case 'MFA_ENROLL_ACTIVATE':
         hideMfaEnroll();
-        showMfaEnroll()
+        showMfaEnroll();
         showMfaEnrollActivate();
         return;
       case 'MFA_CHALLENGE':
@@ -130,6 +130,7 @@ function showMfaAuthn() {
     selectedIndex = -1;
     showMfaEnroll();
     const containerElement = document.getElementById('mfa-enroll-factors');
+    containerElement.innerHTML = '';
     containerElement.style.display = 'block';
     factorsNames = getMfaEnrollFactors().factors;
     factorsNames.forEach(function(name, index) {
@@ -162,14 +163,18 @@ function showMfaAuthn() {
       showEnrollPhone();
     }
     else {
-      enrollFactor(index).then(renderApp);
+      enrollFactor(index).then(renderApp).catch(renderApp);
     }
   }
   window._selectMfaFactorForEnrollment = bindClick(selectMfaFactorForEnrollment);
   
   function enrollPhone() {
     const phoneNumber = document.querySelector('#mfa-enroll-phone input[name=phone]').value;
-    enrollFactor(selectedIndex, phoneNumber).then(renderApp);
+    //enrollFactor(selectedIndex, phoneNumber).then(renderApp).catch(renderApp);
+    alert(phoneNumber);
+    enrollFactor(selectedIndex, phoneNumber).then(res => {
+      renderApp(res);
+    }).catch(renderApp);
   }
 
   function isOktaSMS(){
