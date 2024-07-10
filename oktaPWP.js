@@ -75,11 +75,11 @@ const authClient = new OktaAuth({
     return appState.transaction.cancel().finally(clear);
     }
   
-    function clear() {
-      appState = {};
-      response = {};
-    }
-  
+  function clear() {
+    appState = {};
+    response = {};
+  }
+
   function logout() {
     appState = {
       signedOut: true
@@ -92,41 +92,32 @@ const authClient = new OktaAuth({
 
 //#region	MFA_ENROLL
   function enrollFactor(index, phoneNumber) {
-    return new Promise((resolve, reject) => {
-      const factor = appState.transaction.factors[index];
-      if (!factor) {
-        reject(showError('Error: Incorrect factor index selected'));
-      } 
-      else {
-        updateAppState({ factor });
-        
-        if (factor.provider === 'OKTA' && factor.factorType === 'sms') {
-          alert('JS:'+phoneNumber);
-          factor.enroll({
-            profile: {
-              phoneNumber: phoneNumber,
-              updatePhone: true
-            }
-          }).then(tran => {
-              resolve(handleTransaction(tran));
-            }).catch(err => {
-              reject(showError(err));
-            });
-        } 
-        else if ((factor.provider === 'GOOGLE' && factor.factorType === 'token:software:totp') ||
-            (factor.provider === 'OKTA' && factor.factorType === 'token:software:totp')) {
-              factor.enroll()
-                  .then(tran => {
-                    resolve(handleTransaction(tran));
-                  }).catch(err => {
-                    reject(showError(err));
-                  });
-            }
-        else {
-            return reject(showError('No handling for factor - ' + `${factor.provider}:${factor.factorType}`));
+    const factor = appState.transaction.factors[index];
+    if (!factor) {
+      return returnRejectPromice('Error: Incorrect factor index selected');
+    } 
+    else {
+      updateAppState({ factor });
+      
+      if (factor.provider === 'OKTA' && factor.factorType === 'sms') {
+        return factor.enroll({
+          profile: {
+            phoneNumber: phoneNumber,
+            updatePhone: true
           }
-      }
-      });
+        }).then(handleTransaction)
+          .catch(showError);
+      } 
+      else if ((factor.provider === 'GOOGLE' && factor.factorType === 'token:software:totp') ||
+          (factor.provider === 'OKTA' && factor.factorType === 'token:software:totp')) {
+            return factor.enroll()
+              .then(handleTransaction)
+              .catch(showError);
+          }
+      else {
+        return returnRejectPromice('No handling for factor - ' + `${factor.provider}:${factor.factorType}`);
+        }
+    }
     }
   
   function getMfaEnrollFactors() {
@@ -151,14 +142,14 @@ function getFactor() {
 
 function challengeFactor() {
   const factor = getFactor();
-  factor.verify()
+  return factor.verify()
       .then(handleTransaction)
       .catch(showError);
 }
 
 function verifyFactor(passCode) {
   const factor = getFactor();
-    factor.verify({ passCode })
+  return factor.verify({ passCode })
       .then(handleTransaction)
       .catch(showError);
 }
@@ -191,6 +182,12 @@ function prevMfa() {
     return response;
   }
   
+  function returnRejectPromice(msg) {
+    return new Promise((resolve, reject) => {
+      reject(showError(msg));
+    });
+  }
+
   function showError(errorMsg) {
     if (trace)
       console.error(errorMsg);

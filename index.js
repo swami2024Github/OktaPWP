@@ -1,8 +1,8 @@
 var selectedIndex = -1;
 var factorsNames = '';
+showSignIn();
 
 //#region COMMON
-// bind methods called from HTML to prevent navigation
 function bindClick(method, boundArgs) {
     return function(e) {
       e.preventDefault();
@@ -16,13 +16,11 @@ function bindClick(method, boundArgs) {
     };
   }
 
-showSignIn();
 function renderApp() {
     const containerElem = document.getElementById('response');
     var col = response.isSuccess ? 'green' : 'red' ;
     containerElem.style.color = col;
     containerElem.innerText =stringify(response);
-    //alert (stringify(response));
     
     if (response.transactionStatus !== '') {
       hideSignIn();
@@ -43,8 +41,7 @@ function renderApp() {
         showMfaEnrollActivate();
         return;
       case 'MFA_CHALLENGE':
-        
-        //showMfaAuthn();
+        //Not implemented;
         return;
       default:
         showSignIn();
@@ -78,23 +75,6 @@ window._submitSigninForm = bindClick(submitSigninForm);
 //#endregion SignIn
 
 //#region MFA panel
-function showMfaAuthn() {
-  document.getElementById('mfa').style.display = 'block';
-  const transactionStatus = response.transactionStatus;
-  if (transactionStatus === 'MFA_ENROLL') {
-    return showMfaEnrollFactors();
-  }
-  if (transactionStatus === 'MFA_ENROLL_ACTIVATE') {
-    return showMfaEnrollActivate();
-  }
-  if (transactionStatus === 'MFA_REQUIRED') {
-    return showMfaRequired();
-  }
-  if (transactionStatus === 'MFA_CHALLENGE') {
-    return showMfaChallenge();
-  }
-  throw new Error(`TODO: showMfaAuthn: handle transaction status ${transactionStatus}`);
-}
 
   //#region MFA Enroll
   function hideMfa() {
@@ -103,9 +83,6 @@ function showMfaAuthn() {
     hideSubmitMfa();
     hideMfaEnroll();
     hideMfaEnrollActivate();
-    //hideMfaRequired();
-    //hideMfaChallenge();
-    //hideAuthenticatorVerificationData();
   }
 
   function hideMfaEnroll() {
@@ -145,17 +122,6 @@ function showMfaAuthn() {
     });
   }
 
-  function hideEnrollPhone() {
-    document.getElementById('mfa-enroll-phone').style.display = 'none';
-  }
-
-  function showEnrollPhone() {
-    showPrevMfa();
-    showSubmitMfa();
-    document.querySelector('#mfa .header').innerText = 'Phone/SMS';
-    document.getElementById('mfa-enroll-phone').style.display = 'block';
-  }
-
   function selectMfaFactorForEnrollment(index) {
     selectedIndex = index;
     hideMfaEnrollFactors();
@@ -170,11 +136,18 @@ function showMfaAuthn() {
   
   function enrollPhone() {
     const phoneNumber = document.querySelector('#mfa-enroll-phone input[name=phone]').value;
-    //enrollFactor(selectedIndex, phoneNumber).then(renderApp).catch(renderApp);
-    alert(phoneNumber);
-    enrollFactor(selectedIndex, phoneNumber).then(res => {
-      renderApp(res);
-    }).catch(renderApp);
+    enrollFactor(selectedIndex, phoneNumber).then(renderApp).catch(renderApp);
+  }
+
+  function hideEnrollPhone() {
+    document.getElementById('mfa-enroll-phone').style.display = 'none';
+  }
+
+  function showEnrollPhone() {
+    showPrevMfa();
+    showSubmitMfa();
+    document.querySelector('#mfa .header').innerText = 'Phone/SMS';
+    document.getElementById('mfa-enroll-phone').style.display = 'block';
   }
 
   function isOktaSMS(){
@@ -218,95 +191,89 @@ function showMfaAuthn() {
   }
 
   function submitEnrollActivate() {
-    if (isOktaPush()) {
-      alert ('isOktaPush');
+    var passCode = '';
+    if (isOktaSMS()) {
+      passCode = document.querySelector('#mfa-enroll-activate-phone input[name=passcode]').value;
     } 
     else {
-      const passCode = document.querySelector('#mfa-enroll-activate-phone input[name=passcode]').value;
-      activateFactor(passCode).then(renderApp);
+      passCode = document.querySelector('#mfa-enroll-activate-app input[name=passcode]').value;
     }
+    activateFactor(passCode).then(renderApp);
   }
 
   function hideActivateOktaVerify() {
-    document.getElementById('mfa-enroll-activate-okta-verify').style.display = 'none';
+    document.getElementById('mfa-enroll-activate-app').style.display = 'none';
   }
 
   function showActivateOktaVerify() {
     showSubmitMfa();
     document.querySelector('#mfa .header').innerText = factorsNames[selectedIndex];
     const qrcode = response.content.factor.activation.qrcode;
-    const containerElem = document.getElementById('mfa-enroll-activate-okta-verify');
+    const containerElem = document.getElementById('mfa-enroll-activate-app');
     containerElem.style.display = 'block';
-    const imgFrame = document.querySelector('#mfa-enroll-activate-okta-verify .qrcode');
+    const imgFrame = document.querySelector('#mfa-enroll-activate-app .qrcode');
     imgFrame.innerHTML = '';
     const img = document.createElement('img');
     img.setAttribute('src', qrcode.href);
     imgFrame.appendChild(img);
   }
-
-  function submitActivateOktaVerify() {
-    const passCode = document.querySelector('#mfa-enroll-activate-okta-verify input[name=passcode]').value;
-    appState.transaction.activate({ passCode })
-      .then(handleTransaction)
-      .catch(showError);
-  }
   //#endregion MFA Activate
 
   //#region MFA Button Events
-function showCancelMfa() {
-  document.getElementById('mfa-cancel').style.display = 'inline';
-  hidePrevMfa();
-}
-
-function hideCancelMfa() {
-  document.getElementById('mfa-cancel').style.display = 'none';
-}
-
-function cancelMfaEvent() {
-  showSignIn();
-  hideMfa();
-  clearUi();
-  cancelMfa();
-}
-window._cancelMfa = bindClick(cancelMfaEvent);
-
-function showPrevMfa() {
-  document.getElementById('mfa-prev').style.display = 'inline';
-  hideCancelMfa();
-}
-
-function hidePrevMfa() {
-  document.getElementById('mfa-prev').style.display = 'none';
-}
-
-function prevMfaUi() {
-  hideMfa();
-  if (isOktaSMS()) {
-    renderApp();
-  } 
-  else {
-    prevMfa().then(renderApp);
+  function showCancelMfa() {
+    document.getElementById('mfa-cancel').style.display = 'inline';
+    hidePrevMfa();
   }
-}
-window._prevMfaUi = bindClick(prevMfaUi);
 
-function showSubmitMfa() {
-  document.getElementById('mfa-submit').style.display = 'inline';
-}
+  function hideCancelMfa() {
+    document.getElementById('mfa-cancel').style.display = 'none';
+  }
 
-function hideSubmitMfa() {
-  document.getElementById('mfa-submit').style.display = 'none';
-}
-function submitMfa() {
-  if (response.transactionStatus === 'MFA_ENROLL') {
-    showActivatePhone();
-    enrollPhone();
+  function cancelMfaEvent() {
+    showSignIn();
+    hideMfa();
+    clearUi();
+    cancelMfa();
   }
-  if (response.transactionStatus === 'MFA_ENROLL_ACTIVATE') {
-    submitEnrollActivate();
+  window._cancelMfa = bindClick(cancelMfaEvent);
+
+  function showPrevMfa() {
+    document.getElementById('mfa-prev').style.display = 'inline';
+    hideCancelMfa();
   }
+
+  function hidePrevMfa() {
+    document.getElementById('mfa-prev').style.display = 'none';
   }
-window._submitMfa = bindClick(submitMfa);
-//#endregion MFA Button Events
+
+  function prevMfaUi() {
+    hideMfa();
+    if (isOktaSMS() && response.transactionStatus === 'MFA_ENROLL') {
+      renderApp();
+    } 
+    else {
+      prevMfa().then(renderApp).catch(renderApp);
+    }
+  }
+  window._prevMfaUi = bindClick(prevMfaUi);
+
+  function showSubmitMfa() {
+    document.getElementById('mfa-submit').style.display = 'inline';
+  }
+
+  function hideSubmitMfa() {
+    document.getElementById('mfa-submit').style.display = 'none';
+  }
+  function submitMfa() {
+    if (response.transactionStatus === 'MFA_ENROLL') {
+      showActivatePhone();
+      enrollPhone();
+    }
+    if (response.transactionStatus === 'MFA_ENROLL_ACTIVATE') {
+      submitEnrollActivate();
+    }
+    }
+  window._submitMfa = bindClick(submitMfa);
+  //#endregion MFA Button Events
 
 //#endregion MFA panel
